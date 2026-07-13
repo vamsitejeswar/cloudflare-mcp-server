@@ -52,17 +52,29 @@ async def delete_firewall_ruleset(zone_id: str, ruleset_id: str) -> dict:
 
 
 @mcp.tool(annotations=READ_ONLY)
-async def list_ip_access_rules(account_id: str | None = None, zone_id: str | None = None) -> dict:
+async def list_ip_access_rules(
+    account_id: str | None = None,
+    zone_id: str | None = None,
+    page: int = 1,
+    per_page: int = 1000,
+) -> dict:
     """List IP Access Rules (allow/block/challenge by IP, IP range, ASN, or country).
 
     Provide either account_id (account-level rules) or zone_id (zone-level rules).
+    per_page: up to 1000 per page (Cloudflare maximum). page: 1-based.
+    Check result_info.total_count for the true total and result_info.total_pages
+    to detect whether more pages exist.
     """
     client = get_client()
+    params: dict = {"page": page, "per_page": per_page}
     if zone_id:
-        return await client.request("GET", f"/zones/{zone_id}/firewall/access_rules/rules")
-    client_obj = get_client()
-    account_id = account_id or client_obj.account_id
-    return await client.request("GET", f"/accounts/{account_id}/firewall/access_rules/rules")
+        return await client.request(
+            "GET", f"/zones/{zone_id}/firewall/access_rules/rules", params=params
+        )
+    account_id = account_id or client.account_id
+    return await client.request(
+        "GET", f"/accounts/{account_id}/firewall/access_rules/rules", params=params
+    )
 
 
 @mcp.tool(annotations=CREATE)

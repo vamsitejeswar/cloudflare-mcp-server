@@ -13,11 +13,26 @@ def _account_path(account_id: str | None, client) -> str:
 
 
 @mcp.tool(annotations=READ_ONLY)
-async def list_tunnels(account_id: str | None = None, is_deleted: bool = False) -> dict:
-    """List Cloudflare Tunnels on the account."""
+async def list_tunnels(
+    account_id: str | None = None,
+    is_deleted: bool = False,
+    page: int = 1,
+    per_page: int = 100,
+) -> dict:
+    """List Cloudflare Tunnels on the account.
+
+    per_page: items per page (Cloudflare default is 25; max is around 1000).
+    Default raised to 100 so most accounts are covered in one call. page: 1-based.
+    Check result_info.total_count for the true tunnel count and result_info.total_pages
+    to detect whether additional pages exist.
+    """
     client = get_client()
     base = _account_path(account_id, client)
-    return await client.request("GET", base, params={"is_deleted": str(is_deleted).lower()})
+    return await client.request(
+        "GET",
+        base,
+        params={"is_deleted": str(is_deleted).lower(), "page": page, "per_page": per_page},
+    )
 
 
 @mcp.tool(annotations=READ_ONLY)

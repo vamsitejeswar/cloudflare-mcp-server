@@ -4,10 +4,21 @@ from cloudflared_mcp.annotations import CREATE, DELETE, READ_ONLY, UPDATE
 
 
 @mcp.tool(annotations=READ_ONLY)
-async def list_zones(name: str | None = None, status: str | None = None) -> dict:
-    """List Cloudflare zones (domains) on the account, optionally filtered by name or status."""
+async def list_zones(
+    name: str | None = None,
+    status: str | None = None,
+    page: int = 1,
+    per_page: int = 50,
+) -> dict:
+    """List Cloudflare zones (domains) on the account, optionally filtered by name or status.
+
+    per_page: max 50 (Cloudflare hard limit for this endpoint). page: 1-based.
+    The response includes result_info.total_count (true total regardless of page size)
+    and result_info.total_pages. If result_info.page < result_info.total_pages, more
+    pages exist — call again with page=N+1 to retrieve them.
+    """
     client = get_client()
-    params = {}
+    params: dict = {"page": page, "per_page": per_page}
     if name:
         params["name"] = name
     if status:

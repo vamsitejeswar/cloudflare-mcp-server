@@ -6,11 +6,24 @@ from cloudflared_mcp.annotations import CREATE, DELETE, READ_ONLY
 
 
 @mcp.tool(annotations=READ_ONLY)
-async def list_access_applications(account_id: str | None = None) -> dict:
-    """List Zero Trust Access applications on the account."""
+async def list_access_applications(
+    account_id: str | None = None,
+    page: int = 1,
+    per_page: int = 300,
+) -> dict:
+    """List Zero Trust Access applications on the account.
+
+    per_page: items per page. page: 1-based.
+    Check result_info.total_count for the true total and result_info.total_pages
+    to detect whether more pages exist.
+    """
     client = get_client()
     account_id = account_id or client.account_id
-    return await client.request("GET", f"/accounts/{account_id}/access/apps")
+    return await client.request(
+        "GET",
+        f"/accounts/{account_id}/access/apps",
+        params={"page": page, "per_page": per_page},
+    )
 
 
 @mcp.tool(annotations=CREATE)
@@ -33,12 +46,24 @@ async def delete_access_application(app_id: str, account_id: str | None = None) 
 
 
 @mcp.tool(annotations=READ_ONLY)
-async def list_access_policies(app_id: str, account_id: str | None = None) -> dict:
-    """List the access policies attached to an Access application."""
+async def list_access_policies(
+    app_id: str,
+    account_id: str | None = None,
+    page: int = 1,
+    per_page: int = 300,
+) -> dict:
+    """List the access policies attached to an Access application.
+
+    per_page: items per page. page: 1-based.
+    Check result_info.total_count for the true total and result_info.total_pages
+    to detect whether more pages exist.
+    """
     client = get_client()
     account_id = account_id or client.account_id
     return await client.request(
-        "GET", f"/accounts/{account_id}/access/apps/{app_id}/policies"
+        "GET",
+        f"/accounts/{account_id}/access/apps/{app_id}/policies",
+        params={"page": page, "per_page": per_page},
     )
 
 

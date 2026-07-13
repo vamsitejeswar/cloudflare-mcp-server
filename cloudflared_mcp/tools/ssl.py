@@ -11,10 +11,23 @@ async def get_ssl_verification(zone_id: str) -> dict:
 
 
 @mcp.tool(annotations=READ_ONLY)
-async def list_custom_certificates(zone_id: str) -> dict:
-    """List custom (uploaded) SSL certificates for a zone."""
+async def list_custom_certificates(
+    zone_id: str,
+    page: int = 1,
+    per_page: int = 50,
+) -> dict:
+    """List custom (uploaded) SSL certificates for a zone.
+
+    per_page: items per page (Cloudflare maximum for this endpoint is 50). page: 1-based.
+    Check result_info.total_count for the true total and result_info.total_pages
+    to detect whether more pages exist.
+    """
     client = get_client()
-    return await client.request("GET", f"/zones/{zone_id}/custom_certificates")
+    return await client.request(
+        "GET",
+        f"/zones/{zone_id}/custom_certificates",
+        params={"page": page, "per_page": per_page},
+    )
 
 
 @mcp.tool(annotations=CREATE)
@@ -56,8 +69,19 @@ async def create_origin_ca_certificate(
 
 
 @mcp.tool(annotations=READ_ONLY)
-async def list_origin_ca_certificates(zone_id: str | None = None) -> dict:
-    """List Origin CA certificates, optionally filtered by zone."""
+async def list_origin_ca_certificates(
+    zone_id: str | None = None,
+    page: int = 1,
+    per_page: int = 100,
+) -> dict:
+    """List Origin CA certificates, optionally filtered by zone.
+
+    per_page: items per page. page: 1-based.
+    Check result_info.total_count for the true total and result_info.total_pages
+    to detect whether more pages exist.
+    """
     client = get_client()
-    params = {"zone_id": zone_id} if zone_id else {}
+    params: dict = {"page": page, "per_page": per_page}
+    if zone_id:
+        params["zone_id"] = zone_id
     return await client.request("GET", "/certificates", params=params)

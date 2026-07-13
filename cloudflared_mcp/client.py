@@ -54,6 +54,32 @@ class CloudflareClient:
         response.raise_for_status()
         return response.text
 
+    async def request_form(
+        self,
+        method: str,
+        path: str,
+        data: dict | None = None,
+        files: dict | None = None,
+    ) -> dict:
+        """For endpoints that require multipart/form-data (e.g. DNS import)."""
+        path = path if path.startswith("/") else f"/{path}"
+        response = await self._client.request(method.upper(), path, data=data or {}, files=files or {})
+        result = response.json()
+        if not result.get("success", False):
+            raise CloudflareAPIError(response.status_code, result.get("errors", []))
+        return result
+
+    async def graphql(self, query: str, variables: dict | None = None) -> dict:
+        """Execute a GraphQL query against the Cloudflare Analytics GraphQL API."""
+        body: dict = {"query": query}
+        if variables:
+            body["variables"] = variables
+        response = await self._client.request("POST", "/graphql", json=body)
+        data = response.json()
+        if "errors" in data and data["errors"]:
+            raise CloudflareAPIError(response.status_code, data["errors"])
+        return data.get("data", data)
+
     async def aclose(self):
         await self._client.aclose()
 
