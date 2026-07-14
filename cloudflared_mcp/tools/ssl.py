@@ -77,11 +77,14 @@ async def list_origin_ca_certificates(
     """List Origin CA certificates, optionally filtered by zone.
 
     per_page: items per page. page: 1-based.
-    Check result_info.total_count for the true total and result_info.total_pages
-    to detect whether more pages exist.
+    When page=1 (default), ALL pages are fetched automatically so result[].length always
+    equals result_info.total_count. Pass page>1 to fetch a specific page only.
+    result_info.total_count reflects only the zone_id-filtered subset when zone_id is supplied.
     """
     client = get_client()
     params: dict = {"page": page, "per_page": per_page}
     if zone_id:
         params["zone_id"] = zone_id
-    return await client.request("GET", "/certificates", params=params)
+    if page != 1:
+        return await client.request("GET", "/certificates", params=params)
+    return await client.request_all_pages("GET", "/certificates", params=params)

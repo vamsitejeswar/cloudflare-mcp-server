@@ -295,3 +295,13 @@ cloudflared_mcp/
 ```
 
 To restore any hidden tool group, uncomment its import line in `tools/__init__.py`.
+
+---
+
+## used for:
+
+With this agent, you can manage your Cloudflare DNS records — list, create, update, delete, import, and export them — all through simple conversational commands.
+
+You can monitor your traffic and security analytics — bandwidth usage, cache performance, threat reports, bot activity, and top requested paths — without touching the Cloudflare dashboard.
+
+You can also track billing and subscriptions — view account subscriptions, current billable usage, pay-as-you-go consumption, and organization-level usage — along with managing firewall rules and rulesets directly through the agent.

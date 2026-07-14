@@ -80,6 +80,40 @@ class CloudflareClient:
             raise CloudflareAPIError(response.status_code, data["errors"])
         return data.get("data", data)
 
+    async def request_all_pages(
+        self,
+        method: str,
+        path: str,
+        params: dict | None = None,
+    ) -> dict:
+        """Fetch every page of a page/per_page-paginated endpoint and return combined results.
+
+        Combines all result[] arrays across pages. result_info.total_count comes from the
+        first-page response (the API's authoritative value) so it reflects the true filtered
+        total, not just the items returned. Stops when current page >= total_pages.
+        """
+        params = dict(params or {})
+        first = await self.request(method, path, params=params)
+        result_info = first.get("result_info", {})
+        total_pages = result_info.get("total_pages", 1)
+        if total_pages <= 1:
+            return first
+        all_results = list(first.get("result", []))
+        for page in range(2, total_pages + 1):
+            params["page"] = page
+            page_data = await self.request(method, path, params=params)
+            all_results.extend(page_data.get("result", []))
+        return {
+            "success": True,
+            "result": all_results,
+            "result_info": {
+                **result_info,
+                "page": 1,
+                "count": len(all_results),
+                "total_count": result_info.get("total_count", len(all_results)),
+            },
+        }
+
     async def aclose(self):
         await self._client.aclose()
 

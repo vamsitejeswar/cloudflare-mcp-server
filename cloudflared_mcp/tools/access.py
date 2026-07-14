@@ -14,16 +14,17 @@ async def list_access_applications(
     """List Zero Trust Access applications on the account.
 
     per_page: items per page. page: 1-based.
-    Check result_info.total_count for the true total and result_info.total_pages
-    to detect whether more pages exist.
+    When page=1 (default), ALL pages are fetched automatically so result[].length always
+    equals result_info.total_count. Pass page>1 to fetch a specific page only.
+    result_info.total_count is the true total from the API.
     """
     client = get_client()
     account_id = account_id or client.account_id
-    return await client.request(
-        "GET",
-        f"/accounts/{account_id}/access/apps",
-        params={"page": page, "per_page": per_page},
-    )
+    params = {"page": page, "per_page": per_page}
+    path = f"/accounts/{account_id}/access/apps"
+    if page != 1:
+        return await client.request("GET", path, params=params)
+    return await client.request_all_pages("GET", path, params=params)
 
 
 @mcp.tool(annotations=CREATE)
@@ -55,16 +56,17 @@ async def list_access_policies(
     """List the access policies attached to an Access application.
 
     per_page: items per page. page: 1-based.
-    Check result_info.total_count for the true total and result_info.total_pages
-    to detect whether more pages exist.
+    When page=1 (default), ALL pages are fetched automatically so result[].length always
+    equals result_info.total_count. Pass page>1 to fetch a specific page only.
+    result_info.total_count is the true total from the API.
     """
     client = get_client()
     account_id = account_id or client.account_id
-    return await client.request(
-        "GET",
-        f"/accounts/{account_id}/access/apps/{app_id}/policies",
-        params={"page": page, "per_page": per_page},
-    )
+    params = {"page": page, "per_page": per_page}
+    path = f"/accounts/{account_id}/access/apps/{app_id}/policies"
+    if page != 1:
+        return await client.request("GET", path, params=params)
+    return await client.request_all_pages("GET", path, params=params)
 
 
 @mcp.tool(annotations=CREATE)

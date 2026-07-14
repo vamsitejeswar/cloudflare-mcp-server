@@ -1,6 +1,7 @@
 from cloudflared_mcp.tools import (  # noqa: F401
     # access,
     analytics,
+    billing,
     # cache,
     dns,
     # firewall,
@@ -10,5 +11,5 @@ from cloudflared_mcp.tools import (  # noqa: F401
     # ssl,
     # tunnels,
     # workers_kv,
-    # zones,
+    zones,
 )

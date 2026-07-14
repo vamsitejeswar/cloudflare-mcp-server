@@ -13,9 +13,9 @@ async def list_zones(
     """List Cloudflare zones (domains) on the account, optionally filtered by name or status.
 
     per_page: max 50 (Cloudflare hard limit for this endpoint). page: 1-based.
-    The response includes result_info.total_count (true total regardless of page size)
-    and result_info.total_pages. If result_info.page < result_info.total_pages, more
-    pages exist — call again with page=N+1 to retrieve them.
+    When page=1 (default), ALL pages are fetched automatically so result[].length always
+    equals result_info.total_count — never partial. Pass page>1 to fetch a specific page only.
+    result_info.total_count is the true count matching the active name/status filters.
     """
     client = get_client()
     params: dict = {"page": page, "per_page": per_page}
@@ -23,7 +23,9 @@ async def list_zones(
         params["name"] = name
     if status:
         params["status"] = status
-    return await client.request("GET", "/zones", params=params)
+    if page != 1:
+        return await client.request("GET", "/zones", params=params)
+    return await client.request_all_pages("GET", "/zones", params=params)
 
 
 @mcp.tool(annotations=READ_ONLY)
